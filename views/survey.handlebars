@@ -1,0 +1,106 @@
+<div class="row">
+    <div class="col s12 m10 l8 offset-m1 offset-l2">
+        <div class="card card-survey">
+            <div class="card-content">
+                <div class="row">
+                    <div class="col s12">
+                        <form>
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <label class="black-text active" for="name">Name</label>
+                                    <input id="name" type="text">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <label class="black-text active" for="pic">URL for Picture</label>
+                                    <input id="pic" type="text">
+                                </div>
+                            </div>
+                            {{#each questions }}
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <label class="black-text select-label">{{ this }}</label>
+                                </div>
+                            <div class="input-field col s12">
+                                <select class="browser-default q{{@index}}">
+                                    <option value="" disabled selected>Choose your option</option>
+                                    <option value="1">1 - Strongly disagree</option>
+                                    <option value="2">2 - Disagree</option>
+                                    <option value="3">3 - Neither agree nor disagree</option>
+                                    <option value="4">4 - Agree</option>
+                                    <option value="5">5 - Strongly agree</option>
+                                </select>
+                            </div>
+                            </div>
+                            {{/each}}
+                            <div class="card-action center-align">
+                                <a class="waves-effect waves-light btn-large blue yellow-text find-btn"
+                                    href="/survey">Find My Friend</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="invalid-input" class="modal">
+  <div class="modal-content">
+    <p></p>
+    <button id="modal-btn">Close</button>
+  </div>
+</div>
+<script>
+    $(document).ready(function() {
+        $('.find-btn').on('click', function(event) {
+            event.preventDefault();
+            if (!validateTextFields() || !validateSelectFields()) {
+                $('.modal-content p').text("You must enter data in all fields!")
+                $('#invalid-input').show();
+                $('#modal-btn').on('click', function(event) {
+                    $('#invalid-input').hide();
+                })
+            } else {
+                var scores = [];
+                for (var i = 0; i < 10; i++) {
+                    scores.push($('.q' + i).val());
+                }
+                var newPerson = {
+                    name: $('#name').val(),
+                    photo: $('#pic').val(),
+                    scores: scores
+                }
+                
+                $.post('api/friends', newPerson).then(function(data) {
+                    var friendHTML = `<h1 class="friend-header">Your New Friend!</h1>
+                            <p class="friend-name">${data.name}</p>
+                            <img class="friend-img" src="${data.photo}" alt="">`;
+                    
+                    $('.modal-content p').html(friendHTML);
+                    $('#invalid-input').show();
+                    $('#modal-btn').on('click', function(event) {
+                        $('#invalid-input').hide();
+                        window.location = "/";
+                    });
+                });
+            }
+            function validateTextFields() {
+                if ($('#name').val() === "") {
+                    return false;
+                } else if ($('#pic').val() === "") {
+                    return false;
+                }
+                return true;
+            }
+            function validateSelectFields() {
+                for (var i = 0; i < 10; i++) {
+                    if ($('.q' + i).val() === null) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        });
+    });
+</script>
